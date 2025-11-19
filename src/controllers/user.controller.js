@@ -18,7 +18,7 @@ const generateaccesstoken = async (userId) => {
 };
 
 const registers = asynhandler(async (req, res) => {
-  const { userName, email, password } = req.body;
+  const { userName, email, password, bio } = req.body;
 
   if (!userName || !email || !password) {
     throw new apiError(400, "All fields are required");
@@ -53,6 +53,7 @@ const registers = asynhandler(async (req, res) => {
     userImg: upload.url || "",
     emailotp: otp,
     expireotp: expiry,
+    bio,
   });
 
   if (!newUser) {
@@ -116,19 +117,108 @@ const login = asynhandler(async (req, res) => {
     checkemail._id
   );
 
-  console.log("isaccesstoken", isaccesstoken);
-  console.log("isrefrehtoken", isrefrehtoken);
+  console.log("accesstoken", isaccesstoken);
+  console.log("refrehtoken", isrefrehtoken);
 
   const option = {
     httpOnly: true,
     secure: false,
   };
 
-  res
-    .status(200)
-    .cookie("isaccesstoken", isaccesstoken, option)
-    .cookie("isrefrehtoken", isrefrehtoken, option)
-    .json(new apiResponse(200, "logged in successfully"));
+// LOGIN
+res
+  .status(200)
+  .cookie("accesstoken", isaccesstoken, option)
+  .cookie("refrehtoken", isrefrehtoken, option)
+  .json(new apiResponse(200, "logged in successfully"));
+
 });
 
-export { registers, login, verifyotp };
+const getsignup = asynhandler(async (req, res) => {
+  const users = await user.find().select("-password");
+  if (!users || users.length === 0) {
+    throw new apiError(400, "user data is empty");
+  }
+
+  res.status(200).json(new apiResponse(200, "users fetch successfully", users));
+});
+
+const singleuser = asynhandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    throw new apiError(400, "User ID is required");
+  }
+
+  const userdata = await user.findById(id);
+
+  if (!userdata) {
+    throw new apiError(404, "User not found");
+  }
+
+  res
+    .status(200)
+    .json(new apiResponse(200, userdata, "User fetched successfully"));
+});
+
+const updatprofile = asynhandler(async (req, res) => {
+  const { id } = req.params;
+  const { userName, email, bio } = req.body;
+
+  if (!userName || !email || !bio) {
+    throw new apiError(400, "All update fields are required");
+  }
+
+  // Prepare update object
+  const updatefield = { userName, email, bio };
+
+  // Check if image uploaded
+  if (req.files?.userImg?.[0]?.path) {
+    const localimg = req.files.userImg[0].path;
+    const uploadimg = await cloudinaryimg(localimg);
+
+    if (!uploadimg) {
+      throw new apiError(500, "Cloudinary image upload failed");
+    }
+
+    updatefield.userImg = uploadimg.url;
+  }
+
+  // Update user
+  const updatedata = await user.findByIdAndUpdate(id, updatefield, {
+    new: true,
+  });
+
+  if (!updatedata) {
+    throw new apiError(404, "User not found");
+  }
+
+  res
+    .status(200)
+    .json(new apiResponse(200, updatedata, "User updated successfully"));
+});
+
+const logout = asynhandler(async (req, res) => {
+  await user.findByIdAndUpdate(req.user._id);
+  const option = {
+    httpOnly: true,
+    secure: false,
+  };
+
+// LOGOUT
+res
+  .status(200)
+  .clearCookie("accesstoken", option)
+  .clearCookie("refrehtoken", option)
+  .json(new apiResponse(200, "User logged out successfully"));
+});
+
+export {
+  registers,
+  login,
+  verifyotp,
+  getsignup,
+  singleuser,
+  updatprofile,
+  logout,
+};
