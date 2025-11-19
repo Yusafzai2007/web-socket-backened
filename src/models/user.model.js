@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import jwt from "cookie-parser";
+import jwt from "jsonwebtoken";
 const userSchema = new mongoose.Schema(
   {
     userName: {
@@ -18,6 +18,17 @@ const userSchema = new mongoose.Schema(
     userImg: {
       type: String,
     },
+     role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    emailotp: {
+      type: String,
+    },
+    expireotp: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
@@ -31,7 +42,7 @@ userSchema.methods.ispasswordcorrect = async function (password) {
   return (password = await bcrypt.compare(password, this.password));
 };
 
-userSchema.method.isaccesstoken = async function () {
+userSchema.methods.isaccesstoken = async function () {
   return jwt.sign(
     {
       _id: this._id,
@@ -44,7 +55,7 @@ userSchema.method.isaccesstoken = async function () {
 };
 
 userSchema.methods.isrefrehtoken = async function () {
-  jwt.sign(
+ return jwt.sign(
     {
       _id: this._id,
     },
