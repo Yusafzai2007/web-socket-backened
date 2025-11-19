@@ -19,14 +19,9 @@ app.use(cookieParser());
 import userRoutes from "./routes/user.route.js";
 app.use("/api/v1/socket", userRoutes);
 
-
-
-
-
-
-
-
-
+///   message routes js
+import messageRoutes from "./routes/message.route.js";
+app.use("/api/v1/socket", messageRoutes);
 
 // ✅ Custom Error Handling Middleware (must be at the END)
 app.use((err, req, res, next) => {
@@ -43,14 +38,5 @@ app.use((err, req, res, next) => {
     message: err.message || "Internal Server Error",
   });
 });
-
-
-
-
-
-
-
-
-
 
 export default app;
