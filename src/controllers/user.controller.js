@@ -24,33 +24,31 @@ const registers = asynhandler(async (req, res) => {
     throw new apiError(400, "All fields are required");
   }
 
-  // Generate OTP
   const otp = await otpgenerator();
-  const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+  const expiry = new Date(Date.now() + 5 * 60 * 1000);
 
-  // Check email already exists
   const checkemail = await user.findOne({ email });
   if (checkemail) {
     throw new apiError(409, "Email already exists");
   }
 
-  // Upload image
-  const localimg = req.files?.userImg?.[0]?.path;
-  if (!localimg) {
-    throw new apiError(400, "User image is required");
+
+  let imgUrl = "";
+
+  if (req.files && req.files.userImg && req.files.userImg[0]) {
+    const localimg = req.files.userImg[0].path;
+
+    const upload = await cloudinaryimg(localimg);
+    if (!upload) throw new apiError(500, "Cloudinary upload failed");
+
+    imgUrl = upload.url;
   }
 
-  const upload = await cloudinaryimg(localimg);
-  if (!upload) {
-    throw new apiError(500, "Cloudinary image upload failed");
-  }
-
-  // Create user
   const newUser = await user.create({
     userName,
     email,
     password,
-    userImg: upload.url || "",
+    userImg: imgUrl,
     emailotp: otp,
     expireotp: expiry,
     bio,
@@ -63,11 +61,11 @@ const registers = asynhandler(async (req, res) => {
   // Send OTP email
   await sendemail(email, otp);
 
-  // Send response
-  return res
-    .status(201)
-    .json(new apiResponse(201, newUser, "User registered successfully"));
+  return res.status(201).json(
+    new apiResponse(201, newUser, "User registered successfully")
+  );
 });
+
 
 const verifyotp = asynhandler(async (req, res) => {
   const { email, otp } = req.body;

@@ -4,7 +4,7 @@ import { apiResponse } from "../utils/apiResponse.js";
 import { Conversation } from "../models/conversation.model.js";
 import { Message } from "../models/message.model.js";
 
-const messagedata = asynhandler(async (req, res) => {
+const messagedata = asynhandler(async (req, res) => {``
   try {
     const { message } = req.body;
     const receiverId = req.params.id;

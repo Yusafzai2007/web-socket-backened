@@ -6,7 +6,7 @@ import cors from "cors";
 app.use(
   cors({
     origin: process.env.Cors_ORIGN,
-    credential: true,
+    credentials: true,
   })
 );
 
