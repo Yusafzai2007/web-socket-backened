@@ -32,7 +32,6 @@ const registers = asynhandler(async (req, res) => {
     throw new apiError(409, "Email already exists");
   }
 
-
   let imgUrl = "";
 
   if (req.files && req.files.userImg && req.files.userImg[0]) {
@@ -61,11 +60,10 @@ const registers = asynhandler(async (req, res) => {
   // Send OTP email
   await sendemail(email, otp);
 
-  return res.status(201).json(
-    new apiResponse(201, newUser, "User registered successfully")
-  );
+  return res
+    .status(201)
+    .json(new apiResponse(201, newUser, "User registered successfully"));
 });
-
 
 const verifyotp = asynhandler(async (req, res) => {
   const { email, otp } = req.body;
@@ -123,17 +121,17 @@ const login = asynhandler(async (req, res) => {
     secure: false,
   };
 
-// LOGIN
-res
-  .status(200)
-  .cookie("accesstoken", isaccesstoken, option)
-  .cookie("refrehtoken", isrefrehtoken, option)
-  .json(new apiResponse(200, "logged in successfully"));
-
+  // LOGIN
+  res
+    .status(200)
+    .cookie("accesstoken", isaccesstoken, option)
+    .cookie("refrehtoken", isrefrehtoken, option)
+    .json(new apiResponse(200, "logged in successfully"));
 });
 
 const getsignup = asynhandler(async (req, res) => {
-  const users = await user.find().select("-password");
+  const loggedinuser=req.user._id
+  const users = await user.find({_id:{$ne:loggedinuser}}).select("-password");
   if (!users || users.length === 0) {
     throw new apiError(400, "user data is empty");
   }
@@ -142,8 +140,7 @@ const getsignup = asynhandler(async (req, res) => {
 });
 
 const singleuser = asynhandler(async (req, res) => {
-  const { id } = req.params;
-
+  const id = req.user;
   if (!id) {
     throw new apiError(400, "User ID is required");
   }
@@ -203,12 +200,12 @@ const logout = asynhandler(async (req, res) => {
     secure: false,
   };
 
-// LOGOUT
-res
-  .status(200)
-  .clearCookie("accesstoken", option)
-  .clearCookie("refrehtoken", option)
-  .json(new apiResponse(200, "User logged out successfully"));
+  // LOGOUT
+  res
+    .status(200)
+    .clearCookie("accesstoken", option)
+    .clearCookie("refrehtoken", option)
+    .json(new apiResponse(200, "User logged out successfully"));
 });
 
 export {

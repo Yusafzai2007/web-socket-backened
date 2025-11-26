@@ -25,6 +25,10 @@ const messageScema = new mongoose.Schema(
       ],
     },
 
+    userImg: {
+      type: String,
+    },
+
     createat: {
       type: Date,
       default: Date.now,

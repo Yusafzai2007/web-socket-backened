@@ -18,8 +18,8 @@ route.post(
 
 route.post("/login",login)
 route.post("/verify-otp",verifyotp)
-route.get("/single-user/:id",singleuser)
-route.get("/users",getsignup)
+route.get("/single-user",jwtverify,singleuser)
+route.get("/users",jwtverify,getsignup)
 route.put("/update-profile/:id",upload.fields([{
    name: "userImg",
       maxCount: 1,
